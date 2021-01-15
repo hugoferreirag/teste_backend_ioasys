@@ -22,6 +22,6 @@ const schema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-const user = mongoose.model("user", schema);
+const admin = mongoose.model("admin", schema);
 
-module.exports = user;
+module.exports = admin;

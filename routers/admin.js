@@ -1,17 +1,18 @@
 const express = require("express");
 const routers = express.Router();
-const userServices = require("../services/user");
+const adminServices = require("../services/admin");
 
 routers.post("/list", (req, res) => {
-  userServices.getAll(req, res);
+  adminServices.getAll(req, res);
 });
 routers.post("/create", (req, res) => {
-  userServices.create(req, res);
+  adminServices.create(req, res);
 });
 routers.put("/update/:id", (req, res) => {
-  userServices.update(req, res);
+  adminServices.update(req, res);
 });
 routers.delete("/delete/:id", (req, res) => {
-  userServices.delete(req, res);
+  adminServices.delete(req, res);
 });
+
 module.exports = routers;

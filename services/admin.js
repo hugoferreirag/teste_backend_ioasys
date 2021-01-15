@@ -1,4 +1,4 @@
-const user = require("../models/user");
+const admin = require("../models/admin");
 const bcrypt = require("bcrypt");
 
 const encryptPassword = async (password) => {
@@ -6,16 +6,16 @@ const encryptPassword = async (password) => {
   return bcrypt.hashSync(password, salt);
 };
 
-const userService = {
+const adminService = {
   getAll: async (req, res) => {
     const { page = 1, perPage = 10 } = req.body;
     try {
-      const count = await user.countDocuments("user");
-      const countPage = page - 1;
-      const limit = perPage;
+      const count = await admin.countDocuments("admin");
+      const countPage = parseInt(page) - 1;
+      const limit = parseInt(perPage);
       const skip = limit * countPage - 1 + 1;
 
-      const items = await user
+      const items = await admin
         .find({ deletedAt: null })
         .skip(skip)
         .limit(limit);
@@ -26,24 +26,24 @@ const userService = {
     }
   },
   create: async (req, res) => {
-    const { name, email } = req.body;
+    const { email, name } = req.body;
     try {
-      if (!email || !req.body.password || !name)
+      if (!email || !name || !req.body.password)
         throw { msg: "Dados inválidos", status: 400 };
 
-      const newUser = {
+      const newAdmin = {
         name,
         email,
         password: await encryptPassword(req.body.password),
       };
 
-      const existsUser = await user.findOne({ email: newUser.email });
-
-      if (existsUser)
+      const existsAdmin = await admin.findOne({ email: newAdmin.email });
+      if (existsAdmin)
         throw { msg: "Usuário já existe no sistema", status: 400 };
 
-      const data = await user.create(newUser);
+      const data = await admin.create(newAdmin);
       const { password, ...rest } = data._doc;
+
       res.status(201).json({ data: rest, msg: "Criado com sucesso" });
     } catch (error) {
       if (error.status) res.status(error.status).json(error.msg);
@@ -54,14 +54,14 @@ const userService = {
     const { id } = req.params;
     try {
       if (!id) throw { msg: "Id não informado", status: 400 };
-      const existsUser = await user.findOne({ _id: id });
-      if (existsUser.deletedAt)
+      const existsAdmin = await admin.findOne({ _id: id });
+      if (existsAdmin.deletedAt)
         throw { msg: "Usuário já desativado", status: 400 };
-      const data = await user.updateOne(
+      await admin.updateOne(
         { _id: id },
-        { ...existsUser._doc, deletedAt: new Date() }
+        { ...existsAdmin._doc, deletedAt: new Date() }
       );
-      res.status(200).json({ msg: "Usuário deletado com sucesso" });
+      res.status(200).json({ msg: "Administrador deletado com sucesso" });
     } catch (error) {
       if (error.status) res.status(error.status).json(error.msg);
       else res.status(500).json(error);
@@ -73,21 +73,21 @@ const userService = {
     try {
       if (!id) throw { msg: "Dados inválidos", status: 400 };
 
-      const existsUser = await user.find({ _id: id });
+      const existsAdmin = await admin.find({ _id: id });
 
-      if (!existsUser.length)
+      if (!existsAdmin.length)
         throw { msg: "Usuário não encontrado", status: 400 };
 
-      const updatedUser = {};
+      const updatedAdmin = {};
       if (!password && !name && !email)
         throw { status: 400, msg: "Nenhum campo enviado para atualização" };
-      if (password) updatedUser.password = await encryptPassword(password);
-      if (name) updatedUser.name = name;
-      if (email) updatedUser.email = email;
+      if (password) updatedAdmin.password = await encryptPassword(password);
+      if (name) updatedAdmin.name = name;
+      if (email) updatedAdmin.email = email;
 
-      await user.updateOne({ _id: id }, { ...existsUser, ...updatedUser });
+      await admin.updateOne({ _id: id }, { ...existsAdmin, ...updatedAdmin });
       res.status(200).json({
-        msg: "Usuário atualizado com sucesso",
+        msg: "Administrador atualizado com sucesso",
         keyUpdated: { name, email },
       });
     } catch (error) {
@@ -97,4 +97,4 @@ const userService = {
   },
 };
 
-module.exports = userService;
+module.exports = adminService;

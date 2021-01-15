@@ -1,21 +1,16 @@
-const clientsRouters = require('./clients');
-const testsRouters = require('./tests');
-const methodsPaymentsRouters = require('./methodsPayment');
-const scheduleRouters = require('./schedule');
-const userRouters = require('./user');
-const authRouter = require('./auth');
-const express = require('express');
+const filmsRouters = require("./films");
+const userRouters = require("./user");
+const adminRouters = require("./admin");
+const authRouter = require("./auth");
+const express = require("express");
 const routers = express.Router();
-const authMiddleware = require('../middlewares/auth');
+const authMiddleware = require("../middlewares/auth");
+const isAdmin = require("../middlewares/isAdmin");
 
-routers.use('/user', userRouters);
-routers.use('/methodsPayments', methodsPaymentsRouters);
-routers.use('/tests', testsRouters);
-routers.use('/auth', authRouter);
-// . . . Rotas abaixo necessitam de authenticação . . .
-routers.use(authMiddleware);
-routers.use('/clients', clientsRouters);
-routers.use('/schedule', scheduleRouters);
+routers.use("/login", authRouter);
+routers.use("/user", authMiddleware, isAdmin, userRouters);
+routers.use("/admin", authMiddleware, isAdmin, adminRouters);
+routers.use("/auth", authMiddleware, isAdmin, authRouter);
+routers.use("/films", authMiddleware, isAdmin, filmsRouters);
 
-
-module.exports = routers
+module.exports = routers;
